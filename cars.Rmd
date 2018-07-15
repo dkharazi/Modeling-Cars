@@ -1,0 +1,137 @@
+---
+title: "Cars"
+author: "Darius Kharazi"
+date: "7/13/2018"
+output: html_document
+---
+
+## Import Statements
+
+```{r setup, include=FALSE}
+## Import libraries
+library(knitr)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(cowplot)
+library(ggfortify)
+```
+
+## Synopsis
+
+In this analysis, we want to better understand the relationship between the given set of variables and miles per gallon. We also want to be able to answer a set of more specific questions, such as the following:
+
+  1. Is an automatic or manual transmission better for MPG.
+  2. Quantify the MPG difference between automatic and manual transmissions.
+  
+Research has shown that there is a correlation between a car's type of transmission and its fuel consumption. A simple linear regression model comparing the am (transmission) with the mpg (miles/gallon) demonstrates an increase of 7.25 miles per gallon for cars with a manual transmission, in comparison to cars with an automatic transmission. However, the inclusion of additional variables in the model can help us understand the reason for this difference in means. For example, automatic cars are heavier than manual cars in our dataset, which could possibly make them less efficient. Additionally, automatic cars tend to have a faster quarter mile time, which could imply that they have more horsepower, as well. A simple linear regression model that includes a car's transmission type, quarter mile time, and weight performs well. Throu
+
+## Exploratory Analysis
+
+```{r eda}
+## Summary of the data
+str(mtcars)
+
+## Summarize the differences between means and sd for transmission types
+mtcars %>% group_by(am) %>%
+  summarise(Mean = mean(mpg, na.rm = TRUE),
+            SD = sd(mpg, na.rm = TRUE),
+            Count = n())
+
+## Plot the differences in types of transmissions
+ggplot(mtcars, aes(factor(am), mpg)) + 
+  geom_boxplot(fill = "blue") +
+  labs(x = "Transmission Type", y = "MPG") + 
+  scale_x_discrete(labels = c("0" = "Automatic", "1" = "Manual"))
+```
+
+According to the boxplot and the table summaries, there seems to be a significant difference between the mean miles per gallon for automatic cars and manual cars. Next, we should back up this difference with statistics by performing a t-test between the two means of miles per gallons for automatic cars and manual cars.
+
+```{r stattest}
+## Ensure automatic transmission type is distributed normally
+aut <- filter(mtcars, am == "0")
+qqnorm(aut$mpg)
+qqline(aut$mpg, col = 2, lwd = 2, lty = 2)
+
+## Ensure manual transmission type is distributed normally
+man <- filter(mtcars, am == "1")
+qqnorm(man$mpg)
+qqline(man$mpg, col = 2, lwd = 2, lty = 2)
+
+## Two sample t-test to compare variances of transmission types
+t.test(mpg ~ am, data = mtcars)
+```
+
+Before we perform any statistical tests on the "mpg" variable, we should first examine the distributions of the "mpg" variable for both automatic and manual cars. By analyzing the Q-Q plots, we're able to see that thy are not normally distributed. Therefore, we should compare the means between the two groups to see if there is a statistically significant difference in their means. After performing a two sample t-test, there seems to be a significant difference between the two means, since the p-value is extremely small. We should keep in mind that there are very few observations for the two groups, implying the sample mean may not have converged to the population mean.
+
+## Simple Linear Regression Model
+
+```{r lm}
+## Fit a slr model
+cars.lm <- lm(mpg ~ am, data = mtcars)
+
+## Model summary
+summary(cars.lm)
+```
+
+After fitting our linear model and reviewing the model summary, we can see that an average manual car will have around 7.245 more miles per gallon compared to an average automatic car. It should be noted that the miles per gallon can vary by about 1.7 miles per gallon. Since the R-squared value is only about 0.34, the car's type of transmission does not explain much of the variance of mpg. We will need to include other variables in our model if our goal is to accurately predict the car's miles per gallon. 
+
+## Multivariable Simple Linear Regression Model
+
+```{r mlm}
+## Reformat variable classes
+mtcars[,c(2,8:11)] <- lapply(mtcars[,c(2,8:11)], as.factor)
+mtcars$am <- factor(mtcars$am, labels = c("Automatic","Manual"))
+
+## Fit a glm
+cars.mlm <- lm(mpg ~ ., data = mtcars)
+
+## Model summary
+summary(cars.mlm)
+```
+
+It seems like 
+
+```{r anova}
+## ANOVA table
+cars.lm <- lm(mpg ~ am + qsec + wt + hp + disp, data = mtcars)
+anova(cars.lm)
+```
+
+According to the ANOVA table, adding the transmission type, quarter mile time, and weight to the model will account for a large amount of the variability created by the "mpg" variable, while using only a few degrees of freedom. Therefore, we should include these variables in the model and prefer this model over the original linear regression model, especially since the R-squared value of the updated model is improved.
+
+```{r plots}
+## Plot of mpg at the different levels of am
+g1 <- ggplot(mtcars, aes(am, mpg)) +
+  geom_boxplot() + 
+  labs(y = "mpg")
+
+## Plot of qsec at the different levels of am
+g2 <- ggplot(mtcars, aes(am, qsec)) +
+  geom_boxplot() + 
+  labs(y = "Quarter Mile Time")
+
+## Plot of wt at the different levels of am
+g3 <- ggplot(mtcars, aes(am, wt)) +
+  geom_boxplot() + 
+  labs(y = "Weight")
+
+## Final plots
+plot_grid(g1, g2, g3, ncol = 3, nrow = 1)
+```
+
+According to the plots, we're able to affirm that manual cars have more miles per gallon compared to automatic cars. We can also see that automatic cars have very different weights and quarter mile times compared to manual cars, which may indicate a potential for using an interaction term for these variables.
+
+```{r}
+## Diagnostic plots
+autoplot(cars.lm, data = mtcars, colour = 'am')
+```
+
+The residuals vs. fitted plot shows if the residuals have any non-linear patterns. There could be a non-linear relationship between the predictor variables in the model and the response variable, which would be indicated by unequal spread around the dashed horizontal line located at 0 on the y-axis. If you find equally spread residuals around a horizontal line without distinct patterns, that is a good indication you don’t have non-linear relationships, which doesn't seem like the case in this situation. If we look deeper into the residual plots, we're able to see that there is a parabolic relationship between the predictors and the response variable.
+
+The normal Q-Q plot also shows if the residuals are normally distributed, which is an assumption of a simple linear regression model. If the residuals deviate from the linear line at all, then the residuals are not normally distributed, meaning the relationship between the predictor variables in the model and the response variable may not have a linear relationship or may include heteroscedasticity. According to the Q-Q plot, the residuals seem to deviate from the linear line, meaning a non-linear relationship between the predictor variables and the response variable may exist.
+
+The Scale-Location plot shows if residuals are spread equally along the ranges of predictors. This is how you can check the assumption of equal variance, otherwise known as homoscedasticity. It’s good if you see a horizontal line with randomly spread points. The line seems to increse slightly at a very steep angle, meaning heteroscedasticity most likely exists in our model.
+
+Lastly, the residuals vs. leverage plot seems to highlight any outliers in the plot. We can see that the Toyota Corolla and Chrysler Imperial are distinct outliers.
