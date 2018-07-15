@@ -123,6 +123,8 @@ plot_grid(g1, g2, g3, ncol = 3, nrow = 1)
 
 According to the plots, we're able to affirm that manual cars have more miles per gallon compared to automatic cars. We can also see that automatic cars have very different weights and quarter mile times compared to manual cars, which may indicate a potential for using an interaction term for these variables.
 
+## Diagnostics
+
 ```{r}
 ## Diagnostic plots
 autoplot(cars.lm, data = mtcars, colour = 'am')
