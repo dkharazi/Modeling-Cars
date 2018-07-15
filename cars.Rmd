@@ -46,6 +46,10 @@ ggplot(mtcars, aes(factor(am), mpg)) +
   scale_x_discrete(labels = c("0" = "Automatic", "1" = "Manual"))
 ```
 
+<p align="center">
+  <img width="400" height="400" src="/graphics/plot1.png">
+</p>
+
 According to the boxplot and the table summaries, there seems to be a significant difference between the mean miles per gallon for automatic cars and manual cars. Next, we should back up this difference with statistics by performing a t-test between the two means of miles per gallons for automatic cars and manual cars.
 
 ```{r stattest}
@@ -62,6 +66,10 @@ qqline(man$mpg, col = 2, lwd = 2, lty = 2)
 ## Two sample t-test to compare variances of transmission types
 t.test(mpg ~ am, data = mtcars)
 ```
+
+<p align="center">
+  <img width="800" height="400" src="/graphics/plot2.png">
+</p>
 
 Before we perform any statistical tests on the "mpg" variable, we should first examine the distributions of the "mpg" variable for both automatic and manual cars. By analyzing the Q-Q plots, we're able to see that thy are not normally distributed. Therefore, we should compare the means between the two groups to see if there is a statistically significant difference in their means. After performing a two sample t-test, there seems to be a significant difference between the two means, since the p-value is extremely small. We should keep in mind that there are very few observations for the two groups, implying the sample mean may not have converged to the population mean.
 
@@ -121,6 +129,10 @@ g3 <- ggplot(mtcars, aes(am, wt)) +
 plot_grid(g1, g2, g3, ncol = 3, nrow = 1)
 ```
 
+<p align="center">
+  <img width="1200" height="400" src="/graphics/plot3.png">
+</p>
+
 According to the plots, we're able to affirm that manual cars have more miles per gallon compared to automatic cars. We can also see that automatic cars have very different weights and quarter mile times compared to manual cars, which may indicate a potential for using an interaction term for these variables.
 
 ## Diagnostics
@@ -129,6 +141,10 @@ According to the plots, we're able to affirm that manual cars have more miles pe
 ## Diagnostic plots
 autoplot(cars.lm, data = mtcars, colour = 'am')
 ```
+
+<p align="center">
+  <img width="800" height="800" src="/graphics/plot4.png">
+</p>
 
 The residuals vs. fitted plot shows if the residuals have any non-linear patterns. There could be a non-linear relationship between the predictor variables in the model and the response variable, which would be indicated by unequal spread around the dashed horizontal line located at 0 on the y-axis. If you find equally spread residuals around a horizontal line without distinct patterns, that is a good indication you don’t have non-linear relationships, which doesn't seem like the case in this situation. If we look deeper into the residual plots, we're able to see that there is a parabolic relationship between the predictors and the response variable.
 
