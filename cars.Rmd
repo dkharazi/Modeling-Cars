@@ -91,7 +91,7 @@ cars.mlm <- lm(mpg ~ ., data = mtcars)
 summary(cars.mlm)
 ```
 
-It seems like 
+After examining the p-values for all of the coefficients in the multiple linear regression model, we can see that the full model is not preferred, since their p-values are very large. Moving forward, we should try another multiple linear regression model with fewer variables.
 
 ```{r anova}
 ## ANOVA table
